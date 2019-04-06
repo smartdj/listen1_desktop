@@ -16,9 +16,19 @@ let mainWindow
 let willQuitApp = false;
 var windowState = { maximized: false }
 
+/**
+ * 定义全局快捷键
+ * 在这里，我新增Mac系统的快捷键 dj 2019-04-06
+ */
 const globalShortcutMapping = {
-  'CmdOrCtrl+Alt+Left':'left',
-  'CmdOrCtrl+Alt+Right':'right',
+    //mac
+    'mediaprevioustrack': 'left',
+    'medianexttrack': 'right',
+    'mediaplaypause': 'play',
+    'mediastop': 'pause',
+    //window、mac
+    // 'CmdOrCtrl+Alt+Left': 'left',
+    // 'CmdOrCtrl+Alt+Right': 'right',
 };
 
 function initialTray(mainWindow) {
