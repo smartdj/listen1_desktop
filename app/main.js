@@ -10,6 +10,14 @@ const BrowserWindow = electron.BrowserWindow
 var path = require('path')
 var iconPath = path.join(__dirname, '/listen1_chrome_extension/images/logo.png');
 
+var AutoLaunch = require('auto-launch');
+
+var listen1AutoLauncher = new AutoLaunch({
+    name: 'Listen1',
+    path: process.execPath,
+    isHidden:true,
+});
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
@@ -27,8 +35,8 @@ const globalShortcutMapping = {
     'mediaplaypause': 'play',
     'mediastop': 'pause',
     //window、mac
-    // 'CmdOrCtrl+Alt+Left': 'left',
-    // 'CmdOrCtrl+Alt+Right': 'right',
+    'CmdOrCtrl+Alt+Left': 'left',
+    'CmdOrCtrl+Alt+Right': 'right'
 };
 
 function initialTray(mainWindow) {
@@ -39,20 +47,18 @@ function initialTray(mainWindow) {
   var trayIconPath = path.join(__dirname, '/resources/logo_16.png');
   appTray = new Tray(trayIconPath);
 
-  function toggleVisiable() {
-    var isVisible = mainWindow.isVisible();
-    if (isVisible) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-    }
-  }
   const contextMenu = Menu.buildFromTemplate([
-    {label: '显示/隐藏窗口',  click(){
+    {
+        label: '显示/隐藏窗口',
+        accelerator: 'CmdOrCtrl+H',
+        click(){
       toggleVisiable();
     }},
-    {label: '退出',  click() {
-      app.quit(); 
+    {
+        label: '退出',
+        accelerator: 'CmdOrCtrl+Q',
+        click() {
+      app.quit();
     }},
   ]);
   //appTray.setToolTip('This is my application.');
@@ -60,6 +66,18 @@ function initialTray(mainWindow) {
   appTray.on('click', function handleClicked () {
     toggleVisiable();
   });
+}
+
+/**
+ * 显示或者隐藏窗口
+ */
+function toggleVisiable() {
+    var isVisible = mainWindow.isVisible();
+    if (isVisible) {
+        mainWindow.hide();
+    } else {
+        mainWindow.show();
+    }
 }
 
 function setKeyMapping(key, message) {
@@ -81,6 +99,28 @@ function disableGlobalShortcuts() {
   }
 
   globalShortcut.unregisterAll()
+}
+
+function enableStartupOnLogin() {
+    listen1AutoLauncher.isEnabled().then(function (isEnabled) {
+        if(isEnabled){
+            return;
+        }
+        listen1AutoLauncher.enable();
+    }).catch(function (err) {
+        console.error(err);
+    })
+}
+
+function disableStartupOnLogin() {
+    listen1AutoLauncher.isEnabled().then(function (isEnabled) {
+        if(!isEnabled){
+            return;
+        }
+        listen1AutoLauncher.disable();
+    }).catch(function (err) {
+        console.error(err);
+    })
 }
 
 function createWindow () {
@@ -138,7 +178,6 @@ function createWindow () {
     }
   });
 
-
   // and load the index.html of the app.
   var ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36';
   mainWindow.loadURL(`file://${__dirname}/listen1_chrome_extension/listen1.html`, {userAgent: ua})
@@ -171,7 +210,14 @@ function createWindow () {
           { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
           { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
           { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-      ]}
+      ]},{
+      label: "Window",
+      submenu: [
+          {label : "Hide/Show", accelerator:"CmdOrCtrl+H", click(){toggleVisiable();}},
+          {label : "Minimize", accelerator:"CmdOrCtrl+M", click(){mainWindow.minimize();}}
+      ]
+      }
+
   ];
 
   mainWindow.setMenu(null);
@@ -254,6 +300,12 @@ ipcMain.on('control', (event, arg) => {
   }
   else if(arg == 'disable_global_shortcut') {
     disableGlobalShortcuts();
+  }
+  else if(arg == 'enable_startup_on_login') {
+      enableStartupOnLogin();
+  }
+  else if(arg == 'disable_startup_on_login') {
+      disableStartupOnLogin();
   }
   else if(arg == 'window_min') {
     mainWindow.minimize();

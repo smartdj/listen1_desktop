@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/listen1/listen1_desktop/issues"
   },
-  "homepage": "https://github.com/listen1/listen1_desktop#readme"
+  "homepage": "https://github.com/listen1/listen1_desktop#readme",
+  "dependencies": {
+    "auto-launch": "^5.0.5"
+  }
 }
